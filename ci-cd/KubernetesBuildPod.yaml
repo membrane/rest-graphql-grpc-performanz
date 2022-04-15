@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - name: argocd-client
+      image: hub.predic8.de/p8/argocd-client:4
+      command:
+        - cat
+      tty: true
+      resources:
+        limits:
+          memory: 100Mi
+        requests:
+          memory: 10Mi
+    - name: gradle
+      image: gradle:7.4.1-jdk17
+      command:
+        - cat
+      tty: true
+      resources:
+        limits:
+          memory: 5Gi
+        requests:
+          memory: 1Gi
+    - name: buildah
+      image: hub.predic8.de/p8/buildah:270
+      command:
+        - cat
+      tty: true
+      resources:
+        limits:
+          memory: 5Gi
+        requests:
+          memory: 1Gi
+    - name: kubectl
+      image: hub.predic8.de/p8/kubectl:10
+      command:
+        - cat
+      tty: true
+      resources:
+        limits:
+          memory: 200Mi
+        requests:
+          memory: 10Mi
+  imagePullSecrets:
+    - name: p8-hub-credentials
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 1
+          preference:
+            matchExpressions:
+              - key: "p8/jenkins"
+                operator: In
+                values: ["true"]
+  tolerations:
+    - effect: NoSchedule
+      key: dedicated
+      value: jenkins
+      operator: Equal

@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    run: postgres
+  name: postgres
+spec:
+  selector:
+    matchLabels:
+      run: postgres
+  serviceName: postgres
+  template:
+    metadata:
+      labels:
+        run: postgres
+    spec:
+      containers:
+      - image: postgres:14.1-bullseye
+        imagePullPolicy: Always
+        name: postgres
+        resources:
+          limits:
+            cpu: "1"
+            memory: 60Mi
+          requests:
+            cpu: "1"
+            memory: 20Mi
+        env:
+          - name: POSTGRES_DB
+            value: postgres
+          - name: POSTGRES_PASSWORD
+            value: abc123
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: p8-hub-credentials
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    run: postgres
+spec:
+  ports:
+    - port: 5432
+      name: postgres
+      protocol: TCP
+  selector:
+    run: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run:  rest-grpc-graphlql-server
+    type: app
+  name: rest-grpc-graphlql-server
+spec:
+  selector:
+    matchLabels:
+      run:  rest-grpc-graphlql-server
+  template:
+    metadata:
+      labels:
+        run: rest-grpc-graphlql-server
+    spec:
+      containers:
+        - env:
+            - name: QUARKUS_ARTEMIS_URL
+              value: tcp://artemis:61616
+          image: hub.predic8.de/p8/integration-demo-task-handler:53
+          imagePullPolicy: Always
+          name: rest-grpc-graphlql-server
+          resources:
+            limits:
+              cpu: "1"
+              memory: 300Mi
+            requests:
+              cpu: "1"
+              memory: 80Mi
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+        - name: p8-hub-credentials
+      restartPolicy: Always

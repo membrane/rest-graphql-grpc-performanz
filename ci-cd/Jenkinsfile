@@ -1,0 +1,88 @@
+@Library("p8-jenkins-utils@1.49")
+
+def name = 'rest-graphql-grpc-spring-boot-demo'
+def image = 'rest-graphql-grpc-spring-boot-demo'
+def repo = 'https://gitea.predic8.de/P8-Demo/rest-graphql-grpc-spring-boot-demo-deploy.git'
+
+final def p8 = new de.predic8.jenkinsutils.P8(this, scm, image)
+
+pipeline {
+    agent {
+        kubernetes {
+            yamlFile 'ci-cd/KubernetesBuildPod.yaml'
+        }
+    }
+
+    stages {
+
+        stage('Git Checkout') {
+            steps {
+                script {
+                    p8.git.checkTriggerCheckoutAndCheckTag()
+                }
+            }
+        }
+
+         stage('gradle Build') {
+                    steps {
+                        container('gradle') {
+                            script {
+                                p8.gradle.useInternalRepo()
+                            }
+                            script {
+                                sh "gradle assemble"
+                            }
+                        }
+                    }
+                }
+
+        stage('Build Buildah Image') {
+            steps {
+                container('buildah') {
+                    script {
+                        p8.oci.repoLogin()
+                        p8.oci.buildV2('ci-cd/')
+                    }
+                }
+            }
+        }
+
+        stage('Push Buildah Image') {
+            steps {
+                container('buildah') {
+                    script {
+                        p8.oci.repoLogin()
+                        p8.oci.pushV2()
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                dir('tmp') {
+                    script {
+
+                        p8.git.checkout url: repo
+
+                        container('kubectl') {
+                            p8.kubectl.patchKubernetesDeploymentFile(containerName: name, filePath:'auto/', fileName:'app.yaml')
+                        }
+
+                        p8.git.addCommitTagAndPush(url: repo)
+
+                        container('argocd-client') {
+                            p8.argo.syncAndWait(name)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}

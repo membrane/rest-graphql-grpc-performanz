@@ -1,0 +1,19 @@
+GET localhost:8080/artikel
+
+###
+
+GET localhost:8080/hersteller/303f38d5-5fe0-4d51-9e05-6bc0dab3f7b0
+
+###
+
+POST localhost:8080/artikel
+Content-Type: application/json
+
+{
+  "id":"e9e64ee5-4c39-44c5-a672-c925a4b85c0c",
+  "name":"Meister Kleber",
+  "farbe":"gelb",
+  "hersteller":"8fd1b640-d143-4bdc-b1b3-2a69bd8442d1",
+  "gewicht":0.40872985
+}
+

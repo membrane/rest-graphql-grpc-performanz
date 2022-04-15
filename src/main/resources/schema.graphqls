@@ -1,0 +1,31 @@
+type Query {
+  artikel(id: ID): Artikel
+  findArtikel: [Artikel!]!
+}
+
+type Mutation {
+    storeArtikel(artikel: ArtikelInput!) : ID
+}
+
+input ArtikelInput {
+    id: ID
+    name: String!
+    farbe: String
+    hersteller: ID
+    gewicht: Float
+}
+
+type Artikel {
+    id: ID
+    name: String!
+    farbe: String
+    hersteller: Hersteller
+    gewicht: Float
+}
+
+type Hersteller {
+    id: ID!
+    name: String!
+    ort: String
+}
+

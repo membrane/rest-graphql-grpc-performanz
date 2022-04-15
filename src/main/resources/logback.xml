@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss}:%-3relative][%thread] %-5level %logger{100}.%M - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="warn"> <!-- ☆☆ If I use debug level, The program is died -->
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>
